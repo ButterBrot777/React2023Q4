@@ -1,19 +1,15 @@
 import { Component } from "react";
 import "./App.css";
 import SearchPage from "./pages/SearchPage.tsx";
+import ErrorBoundary from "./components/ErrorBoundary.tsx";
 
-class App extends Component {
-  constructor(props: object) {
-    super(props);
-    this.state = {
-      // Initialize state if needed
-    };
-  }
-
+class App extends Component<object, object> {
   render() {
     return (
       <>
-        <SearchPage />
+        <ErrorBoundary>
+          <SearchPage />
+        </ErrorBoundary>
       </>
     );
   }

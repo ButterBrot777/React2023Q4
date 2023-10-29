@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import axios from "axios";
+import { SearchService } from "../api/StarWarsService.ts";
 
 interface Person {
   birth_year: string;
@@ -20,13 +20,25 @@ interface Person {
   vehicles: string[];
 }
 
-class SearchPage extends Component {
-  state = {
-    searchTerm: "",
-    searchResults: [],
-    loading: false,
-    error: null as Error | null,
-  };
+interface SearchPageState {
+  searchTerm: string;
+  searchResults: Person[];
+  loading: boolean;
+  error: Error | null;
+}
+
+type SearchPageProps = object;
+
+class SearchPage extends Component<SearchPageProps, SearchPageState> {
+  constructor(props: SearchPageProps) {
+    super(props);
+    this.state = {
+      searchTerm: "",
+      searchResults: [],
+      loading: false,
+      error: null,
+    };
+  }
 
   componentDidMount() {
     // Load previous search term from local storage
@@ -40,24 +52,20 @@ class SearchPage extends Component {
 
   loadSearchResults = async (resource = "people") => {
     this.setState({ loading: true });
-    console.log("state input: ", this.state.searchTerm);
-    console.log("local storage input: ", localStorage.getItem("searchTerm"));
 
-    await axios
-      .get(`https://swapi.dev/api/${resource}/?search=${this.state.searchTerm}`)
-      .then((data) => this.setState({ searchResults: data.data.results }))
-      .catch((error) => {
-        console.error("API request failed:", error.response.status);
-        if (error.response.status === 404) {
-          this.setState({
-            error: new Error("Bad request. Please check url params."),
-          });
-          return;
-        }
-
-        this.setState({ error: error });
-      })
-      .finally(() => this.setState({ loading: false }));
+    try {
+      const searchResults = await SearchService.fetchSearchResults(
+        resource,
+        this.state.searchTerm
+      );
+      this.setState({ searchResults });
+    } catch (error) {
+      if (error instanceof Error) {
+        this.setState({ error });
+      }
+    } finally {
+      this.setState({ loading: false });
+    }
   };
 
   handleSearchInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,7 +82,7 @@ class SearchPage extends Component {
     this.loadSearchResults();
   };
 
-  throwError = () => {
+  throwTestError = () => {
     this.loadSearchResults("asdf");
   };
 
@@ -91,7 +99,7 @@ class SearchPage extends Component {
           <button onClick={this.handleSearch} disabled={this.state.loading}>
             Search
           </button>
-          <button onClick={this.throwError}>Throw Error</button>
+          <button onClick={this.throwTestError}>Throw Error</button>
         </div>
         {this.state.loading ? (
           <div className="">Loading...</div>
