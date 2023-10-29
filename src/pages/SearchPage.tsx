@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import StarWarsService from "../api/StarWarsService.ts";
+import axios from "axios";
 
 interface Person {
   birth_year: string;
@@ -38,20 +38,26 @@ class SearchPage extends Component {
     }
   }
 
-  loadSearchResults = async () => {
+  loadSearchResults = async (resource = "people") => {
     this.setState({ loading: true });
     console.log("state input: ", this.state.searchTerm);
     console.log("local storage input: ", localStorage.getItem("searchTerm"));
 
-    try {
-      const response = await StarWarsService.getPlanets(this.state.searchTerm);
-      this.setState({ searchResults: response.data.results });
-    } catch (error) {
-      console.error("API request failed:", error);
-      this.setState({ error });
-    } finally {
-      this.setState({ loading: false });
-    }
+    await axios
+      .get(`https://swapi.dev/api/${resource}/?search=${this.state.searchTerm}`)
+      .then((data) => this.setState({ searchResults: data.data.results }))
+      .catch((error) => {
+        console.error("API request failed:", error.response.status);
+        if (error.response.status === 404) {
+          this.setState({
+            error: new Error("Bad request. Please check url params."),
+          });
+          return;
+        }
+
+        this.setState({ error: error });
+      })
+      .finally(() => this.setState({ loading: false }));
   };
 
   handleSearchInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,13 +75,13 @@ class SearchPage extends Component {
   };
 
   throwError = () => {
-    throw new Error("This is a test error");
+    this.loadSearchResults("asdf");
   };
 
   render() {
     return (
       <div>
-        <div>
+        <div style={{ marginBottom: "16px" }}>
           <input
             type="text"
             value={this.state.searchTerm}

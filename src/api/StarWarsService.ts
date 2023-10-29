@@ -2,7 +2,7 @@ import axios from "axios";
 
 export default class StarWarsService {
   static async getPlanets(query: string) {
-    const PLANETS_URL = `https://swapi.dev/api/people/?search=${query}`;
+    const PLANETS_URL = `https://swapi.dev/api/asdf/?search=${query}`;
 
     const config = {
       method: "get",
