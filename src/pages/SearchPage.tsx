@@ -16,16 +16,15 @@ interface Product {
 }
 
 export const SearchPage = () => {
-  useEffect(() => {
-    const savedSearchTerm = localStorage.getItem("searchTerm");
-    if (savedSearchTerm) setSearchTerm(savedSearchTerm);
-  }, []);
-
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(() => {
+    const storedSearchTerm = localStorage.getItem("searchTerm");
+    return storedSearchTerm ? storedSearchTerm : "";
+  });
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
   const [itemsPerPage, setItemsPerPage] = useState("10");
+  const [currentPage, setCurrentPage] = useState(1);
   const ref = useRef<HTMLInputElement | null>(null);
 
   const loadSearchResults = useCallback(() => {
@@ -85,17 +84,30 @@ export const SearchPage = () => {
   };
 
   return (
-    <div>
+    <div className="flex flex-col">
       <div style={{ marginBottom: "16px" }}>
-        <input
-          defaultValue={localStorage.getItem("searchTerm") ?? ""}
-          onKeyDown={handleEnter}
-          ref={ref}
-        />
+        <input defaultValue={searchTerm} onKeyDown={handleEnter} ref={ref} />
         <button onClick={handleSearch} disabled={loading}>
           Search
         </button>
         <button onClick={throwTestError}>Throw Error</button>
+      </div>
+      <div className="flex w-full gap-3 my-6 justify-center">
+        <button type="button" onClick={handlePrev}>
+          prev
+        </button>
+        <div className="flex items-center">{currentPage}</div>
+        <select
+          className="flex"
+          value={itemsPerPage}
+          onChange={handleItemsCountChange}
+        >
+          <option value={"5"}>5</option>
+          <option value={"10"}>10</option>
+        </select>
+        <button type="button" onClick={handleNext}>
+          next
+        </button>
       </div>
       {loading ? (
         <div className="">Loading...</div>
@@ -110,22 +122,6 @@ export const SearchPage = () => {
           ))}
         </ul>
       )}
-      <div className="flex">
-        <button type="button" onClick={handlePrev}>
-          prev
-        </button>
-        <select
-          className="flex"
-          value={itemsPerPage}
-          onChange={handleItemsCountChange}
-        >
-          <option value={"5"}>5</option>
-          <option value={"10"}>10</option>
-        </select>
-        <button type="button" onClick={handleNext}>
-          next
-        </button>
-      </div>
     </div>
   );
 };
