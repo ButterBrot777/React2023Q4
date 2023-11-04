@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { SearchService } from "../api/StarWarsService.ts";
 
 interface Person {
@@ -20,103 +20,83 @@ interface Person {
   vehicles: string[];
 }
 
-interface SearchPageState {
-  searchTerm: string;
-  searchResults: Person[];
-  loading: boolean;
-  error: Error | null;
-}
+export const SearchPage = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<Error | null>(null);
 
-type SearchPageProps = object;
+  const loadSearchResults = useCallback(
+    (resource = "people") => {
+      setLoading(true);
+      SearchService.fetchSearchResults(resource, searchTerm)
+        .then((data) => {
+          console.log("data: ", data);
+          setSearchResults(data);
+        })
+        .catch((error) => setError(error))
+        .finally(() => setLoading(false));
+    },
+    [searchTerm]
+  );
 
-class SearchPage extends Component<SearchPageProps, SearchPageState> {
-  constructor(props: SearchPageProps) {
-    super(props);
-    this.state = {
-      searchTerm: "",
-      searchResults: [],
-      loading: false,
-      error: null,
-    };
-  }
-
-  componentDidMount() {
-    // Load previous search term from local storage
+  useEffect(() => {
     const savedSearchTerm = localStorage.getItem("searchTerm");
     if (savedSearchTerm) {
-      this.setState({ searchTerm: savedSearchTerm }, this.loadSearchResults);
+      setSearchTerm(savedSearchTerm);
+      loadSearchResults();
     } else {
-      this.loadSearchResults();
+      loadSearchResults();
     }
-  }
+  }, [setSearchTerm]);
 
-  loadSearchResults = async (resource = "people") => {
-    this.setState({ loading: true });
-
-    try {
-      const searchResults = await SearchService.fetchSearchResults(
-        resource,
-        this.state.searchTerm
-      );
-      this.setState({ searchResults });
-    } catch (error) {
-      if (error instanceof Error) {
-        this.setState({ error });
-      }
-    } finally {
-      this.setState({ loading: false });
-    }
+  const handleSearchInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setSearchTerm(event.target.value);
   };
 
-  handleSearchInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({ searchTerm: event.target.value });
+  const handleEnter = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter") handleSearch();
   };
 
-  handleEnter = (event: React.KeyboardEvent) => {
-    if (event.key === "Enter") this.handleSearch();
-  };
-
-  handleSearch = () => {
-    const trimmedSearchTerm = this.state.searchTerm.trim();
+  const handleSearch = () => {
+    const trimmedSearchTerm = searchTerm.trim();
     localStorage.setItem("searchTerm", trimmedSearchTerm);
-    this.loadSearchResults();
+    loadSearchResults();
   };
 
-  throwTestError = () => {
-    this.loadSearchResults("asdf");
+  const throwTestError = () => {
+    loadSearchResults("asdf");
   };
 
-  render() {
-    return (
-      <div>
-        <div style={{ marginBottom: "16px" }}>
-          <input
-            type="text"
-            value={this.state.searchTerm}
-            onChange={this.handleSearchInputChange}
-            onKeyDown={this.handleEnter}
-          />
-          <button onClick={this.handleSearch} disabled={this.state.loading}>
-            Search
-          </button>
-          <button onClick={this.throwTestError}>Throw Error</button>
-        </div>
-        {this.state.loading ? (
-          <div className="">Loading...</div>
-        ) : this.state.error ? (
-          <div>Error: {this.state.error.message}</div>
-        ) : !this.state.searchResults?.length ? (
-          <div>No results. Please try different name</div>
-        ) : (
-          <ul>
-            {this.state.searchResults.map((person: Person) => (
-              <li key={person.name}>{person.name}</li>
-            ))}
-          </ul>
-        )}
+  return (
+    <div>
+      <div style={{ marginBottom: "16px" }}>
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={handleSearchInputChange}
+          onKeyDown={handleEnter}
+        />
+        <button onClick={handleSearch} disabled={loading}>
+          Search
+        </button>
+        <button onClick={throwTestError}>Throw Error</button>
       </div>
-    );
-  }
-}
-
-export default SearchPage;
+      {loading ? (
+        <div className="">Loading...</div>
+      ) : error ? (
+        <div>Error: {error.message}</div>
+      ) : !searchResults?.length ? (
+        <div>No results. Please try different name</div>
+      ) : (
+        <ul>
+          {searchResults.map((person: Person) => (
+            <li key={person.name}>{person.name}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+};
