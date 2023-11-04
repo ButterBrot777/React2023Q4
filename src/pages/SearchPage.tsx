@@ -1,44 +1,37 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { SearchService } from "../api/StarWarsService.ts";
+import { ApiService } from "../api/ApiService.ts";
 
-interface Person {
-  birth_year: string;
-  eye_color: string;
-  films: string[];
-  gender: string;
-  hair_color: string;
-  height: string;
-  homeworld: string;
-  mass: string;
-  name: string;
-  skin_color: string;
-  created: string;
-  edited: string;
-  species: string[];
-  starships: string[];
-  url: string;
-  vehicles: string[];
+interface Product {
+  brand: "";
+  category: "";
+  description: "";
+  discountPercentage: number;
+  id: number;
+  images: string[];
+  price: number;
+  rating: number;
+  stock: number;
+  thumbnail: string;
+  title: string;
 }
 
 export const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
+  const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const loadSearchResults = useCallback(
-    (resource = "people") => {
-      setLoading(true);
-      SearchService.fetchSearchResults(resource, searchTerm)
-        .then((data) => {
-          console.log("data: ", data);
-          setSearchResults(data);
-        })
-        .catch((error) => setError(error))
-        .finally(() => setLoading(false));
-    },
-    [searchTerm]
-  );
+  const loadSearchResults = useCallback(() => {
+    setLoading(true);
+    ApiService.getItems(itemsPerPage, searchTerm)
+      .then((data) => {
+        console.log("data: ", data);
+        setSearchResults(data);
+      })
+      .catch((error) => setError(error))
+      .finally(() => setLoading(false));
+  }, [searchTerm]);
 
   useEffect(() => {
     const savedSearchTerm = localStorage.getItem("searchTerm");
@@ -92,8 +85,8 @@ export const SearchPage = () => {
         <div>No results. Please try different name</div>
       ) : (
         <ul>
-          {searchResults.map((person: Person) => (
-            <li key={person.name}>{person.name}</li>
+          {searchResults.map((product: Product) => (
+            <li key={product.id}>{product.title}</li>
           ))}
         </ul>
       )}
