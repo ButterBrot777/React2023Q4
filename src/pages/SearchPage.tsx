@@ -47,19 +47,25 @@ export const SearchPage = () => {
         }&page=${currentPage + 1}`
       );
     }
-  }, [currentPage, itemsPerPage, searchTerm, setSearchParams]);
+  }, [
+    currentPage,
+    itemsPerPage,
+    limit,
+    navigate,
+    q,
+    searchTerm,
+    setSearchParams,
+  ]);
 
   const loadSearchResults = useCallback(() => {
     setLoading(true);
     ApiService.getItems(itemsPerPage, searchTerm, currentPage)
       .then((data) => {
-        console.log("data: ", data);
         setSearchResults(data?.data.products);
         setError(null);
       })
       .catch((error) => setError(error))
       .finally(() => {
-        console.log("term: ", searchTerm);
         setLoading(false);
       });
   }, [currentPage, itemsPerPage, searchTerm]);
@@ -77,9 +83,10 @@ export const SearchPage = () => {
     if (currentRef) {
       const value = currentRef.trim();
       setSearchTerm(value);
+      setCurrentPage(0);
+      setSearchParams({ ...searchParams, page: "1" });
       localStorage.setItem("searchTerm", value);
       loadSearchResults();
-      console.log("params search: ", params);
       setSearchParams({ q: currentRef, page: currentPage.toString() });
       navigate(
         `/search?q=${q ? q : currentRef ? currentRef : ""}&limit=${
@@ -88,8 +95,9 @@ export const SearchPage = () => {
       );
     } else {
       localStorage.setItem("searchTerm", "");
-      console.log("empty");
       setSearchTerm("");
+      setCurrentPage(0);
+      setSearchParams({ ...searchParams, page: "1" });
       loadSearchResults();
       navigate(
         `/search?q=${q ? q : currentRef ? currentRef : ""}&limit=${
@@ -105,32 +113,33 @@ export const SearchPage = () => {
   };
 
   const handlePrev = () => {
-    console.log("prev: ", itemsPerPage);
     setCurrentPage((prevState) => prevState - 1);
+    setSearchParams({
+      ...searchParams,
+      q: q ? q : searchTerm,
+      limit: limit ? limit : itemsPerPage,
+      page: currentPage.toString(),
+    });
   };
   const handleNext = () => {
-    console.log("next: ", itemsPerPage);
     setCurrentPage((prevState) => prevState + 1);
+    setSearchParams({
+      ...searchParams,
+      q: q ? q : searchTerm,
+      limit: limit ? limit : itemsPerPage,
+      page: (currentPage + 2).toString(),
+    });
   };
   const handleItemsCountChange = async (
     event: React.ChangeEvent<HTMLSelectElement>
   ) => {
     const value = event.target.value;
     setItemsPerPage(value);
-    console.log("search params: ", searchParams);
     setSearchParams({ ...searchParams, limit: value });
   };
 
-  const updateSearchParams = () => {
-    setSearchParams({
-      ...setSearchParams,
-      id: params.id ? params.id.toString() : "",
-      q: q ? q : searchTerm ? searchTerm : "",
-    });
-  };
-
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col text-white">
       <div style={{ marginBottom: "16px" }}>
         <input defaultValue={searchTerm} onKeyDown={handleEnter} ref={ref} />
         <button onClick={handleSearch} disabled={loading}>
@@ -140,7 +149,7 @@ export const SearchPage = () => {
       </div>
       <div className="flex w-full gap-3 my-6 justify-center">
         <button
-          className="bg-gray-500"
+          className={`bg-gray-500 ${!currentPage && "cursor-not-allowed"}`}
           type="button"
           onClick={handlePrev}
           disabled={!currentPage}

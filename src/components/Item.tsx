@@ -1,6 +1,7 @@
 import {
   Link,
   useNavigate,
+  useNavigation,
   useParams,
   useSearchParams,
 } from "react-router-dom";
@@ -13,6 +14,8 @@ export const Item = () => {
   const [customItem, setCustomItem] = useState<Product>();
   const [loading, setLoading] = useState<boolean>(false);
   const params = useParams();
+  const { id, q, limit, page } = searchParams;
+  const navigation = useNavigation();
 
   useEffect(() => {
     if (params.id) {
@@ -25,16 +28,24 @@ export const Item = () => {
         .finally(() => setLoading(false));
     }
   }, [params.id]);
-  console.log("params: ", ...searchParams);
+
   return (
     <>
       {loading ? (
         <div className="">Loading...</div>
-      ) : (
+      ) : params.id ? (
         <div className="flex flex-col">
-          <Link to={"/"}>Close</Link>
+          <Link
+            to={`/search?q=${q ? q : ""}&limit=${limit ? limit : ""}&page=${
+              page ? page : ""
+            }`}
+          >
+            Close
+          </Link>
           <p>ID: {customItem?.id}</p>
         </div>
+      ) : (
+        <></>
       )}
     </>
   );

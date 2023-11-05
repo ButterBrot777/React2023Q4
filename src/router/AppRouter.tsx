@@ -12,10 +12,12 @@ export const appRouter = createBrowserRouter([
       {
         path: ":id/search",
         element: <Item />,
+        errorElement: <PageNotFound />,
       },
       {
         path: "search",
         element: <Item />,
+        errorElement: <PageNotFound />,
       },
     ],
   },
