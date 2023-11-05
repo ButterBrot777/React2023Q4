@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ApiService } from "../api/ApiService.ts";
+import { Link, useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 interface Product {
   brand: "";
@@ -26,6 +29,25 @@ export const SearchPage = () => {
   const [itemsPerPage, setItemsPerPage] = useState("10");
   const [currentPage, setCurrentPage] = useState(0);
   const ref = useRef<HTMLInputElement | null>(null);
+  const params = useParams();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { id, q, limit, page } = searchParams;
+
+  useEffect(() => {
+    if (searchTerm) {
+      setSearchParams({
+        q: searchTerm,
+        limit: itemsPerPage,
+        page: (currentPage + 1).toString(),
+      });
+      navigate(
+        `/search?q=${q ? q : searchTerm ? searchTerm : ""}&limit=${
+          limit ? limit : itemsPerPage
+        }&page=${currentPage + 1}`
+      );
+    }
+  }, [currentPage, itemsPerPage, searchTerm, setSearchParams]);
 
   const loadSearchResults = useCallback(() => {
     setLoading(true);
@@ -57,11 +79,23 @@ export const SearchPage = () => {
       setSearchTerm(value);
       localStorage.setItem("searchTerm", value);
       loadSearchResults();
+      console.log("params search: ", params);
+      setSearchParams({ q: currentRef, page: currentPage.toString() });
+      navigate(
+        `/search?q=${q ? q : currentRef ? currentRef : ""}&limit=${
+          limit ? limit : itemsPerPage
+        }&page=${currentPage + 1}`
+      );
     } else {
       localStorage.setItem("searchTerm", "");
       console.log("empty");
       setSearchTerm("");
       loadSearchResults();
+      navigate(
+        `/search?q=${q ? q : currentRef ? currentRef : ""}&limit=${
+          limit ? limit : itemsPerPage
+        }&page=${currentPage + 1}`
+      );
     }
   };
 
@@ -83,10 +117,18 @@ export const SearchPage = () => {
   ) => {
     const value = event.target.value;
     setItemsPerPage(value);
+    console.log("search params: ", searchParams);
+    setSearchParams({ ...searchParams, limit: value });
+  };
+
+  const updateSearchParams = () => {
+    setSearchParams({ q: searchTerm });
   };
 
   return (
     <div className="flex flex-col">
+      <button onClick={updateSearchParams}>Update params</button>
+
       <div style={{ marginBottom: "16px" }}>
         <input defaultValue={searchTerm} onKeyDown={handleEnter} ref={ref} />
         <button onClick={handleSearch} disabled={loading}>
@@ -125,7 +167,9 @@ export const SearchPage = () => {
       ) : (
         <ul>
           {searchResults.map((product: Product) => (
-            <li key={product.id}>{product.title}</li>
+            <li key={product.id}>
+              <Link to={`/${product.id}`}>{product.title}</Link>
+            </li>
           ))}
         </ul>
       )}
