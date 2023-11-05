@@ -24,12 +24,12 @@ export const SearchPage = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
   const [itemsPerPage, setItemsPerPage] = useState("10");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0);
   const ref = useRef<HTMLInputElement | null>(null);
 
   const loadSearchResults = useCallback(() => {
     setLoading(true);
-    ApiService.getItems(itemsPerPage, searchTerm)
+    ApiService.getItems(itemsPerPage, searchTerm, currentPage)
       .then((data) => {
         console.log("data: ", data);
         setSearchResults(data?.data.products);
@@ -40,7 +40,7 @@ export const SearchPage = () => {
         console.log("term: ", searchTerm);
         setLoading(false);
       });
-  }, [itemsPerPage, searchTerm]);
+  }, [currentPage, itemsPerPage, searchTerm]);
 
   useEffect(() => {
     loadSearchResults();
@@ -72,9 +72,11 @@ export const SearchPage = () => {
 
   const handlePrev = () => {
     console.log("prev: ", itemsPerPage);
+    setCurrentPage((prevState) => prevState - 1);
   };
   const handleNext = () => {
     console.log("next: ", itemsPerPage);
+    setCurrentPage((prevState) => prevState + 1);
   };
   const handleItemsCountChange = async (
     event: React.ChangeEvent<HTMLSelectElement>
@@ -93,19 +95,24 @@ export const SearchPage = () => {
         <button onClick={throwTestError}>Throw Error</button>
       </div>
       <div className="flex w-full gap-3 my-6 justify-center">
-        <button type="button" onClick={handlePrev}>
+        <button
+          className="bg-gray-500"
+          type="button"
+          onClick={handlePrev}
+          disabled={!currentPage}
+        >
           prev
         </button>
-        <div className="flex items-center">{currentPage}</div>
+        <div className="flex items-center px-4">{currentPage + 1}</div>
         <select
-          className="flex"
+          className="flex w-14"
           value={itemsPerPage}
           onChange={handleItemsCountChange}
         >
           <option value={"5"}>5</option>
           <option value={"10"}>10</option>
         </select>
-        <button type="button" onClick={handleNext}>
+        <button className="bg-gray-500" type="button" onClick={handleNext}>
           next
         </button>
       </div>
