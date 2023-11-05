@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ApiService } from "../api/ApiService.ts";
 import { Link, useSearchParams } from "react-router-dom";
-import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
 export interface Product {
@@ -29,7 +28,6 @@ export const SearchPage = () => {
   const [itemsPerPage, setItemsPerPage] = useState("10");
   const [currentPage, setCurrentPage] = useState(0);
   const ref = useRef<HTMLInputElement | null>(null);
-  const params = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { id, q, limit, page } = searchParams;

@@ -1,12 +1,6 @@
-import {
-  Link,
-  useNavigate,
-  useNavigation,
-  useParams,
-  useSearchParams,
-} from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Product } from "../pages/SearchPage.tsx";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ApiService } from "../api/ApiService.ts";
 
 export const Item = () => {
@@ -15,7 +9,6 @@ export const Item = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const params = useParams();
   const { id, q, limit, page } = searchParams;
-  const navigation = useNavigation();
 
   useEffect(() => {
     if (params.id) {
