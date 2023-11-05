@@ -8,4 +8,9 @@ export class ApiService {
     console.log("url: ", url);
     return axios.get(url);
   }
+
+  public static async getItem(id: string) {
+    const url = `${BASE_URL}/${id}`;
+    return axios.get(url);
+  }
 }

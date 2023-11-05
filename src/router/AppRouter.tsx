@@ -1,5 +1,4 @@
-import * as React from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import { App } from "../App.tsx";
 import { PageNotFound } from "../pages/PageNotFound.tsx";
 import { Item } from "../components/Item.tsx";
@@ -11,11 +10,11 @@ export const appRouter = createBrowserRouter([
     errorElement: <PageNotFound />,
     children: [
       {
-        path: ":id",
+        path: ":id/search",
         element: <Item />,
       },
       {
-        path: ":id/search",
+        path: "search",
         element: <Item />,
       },
     ],

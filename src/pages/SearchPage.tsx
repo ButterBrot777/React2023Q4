@@ -4,7 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
-interface Product {
+export interface Product {
   brand: "";
   category: "";
   description: "";
@@ -122,13 +122,15 @@ export const SearchPage = () => {
   };
 
   const updateSearchParams = () => {
-    setSearchParams({ q: searchTerm });
+    setSearchParams({
+      ...setSearchParams,
+      id: params.id ? params.id.toString() : "",
+      q: q ? q : searchTerm ? searchTerm : "",
+    });
   };
 
   return (
     <div className="flex flex-col">
-      <button onClick={updateSearchParams}>Update params</button>
-
       <div style={{ marginBottom: "16px" }}>
         <input defaultValue={searchTerm} onKeyDown={handleEnter} ref={ref} />
         <button onClick={handleSearch} disabled={loading}>
@@ -168,7 +170,15 @@ export const SearchPage = () => {
         <ul>
           {searchResults.map((product: Product) => (
             <li key={product.id}>
-              <Link to={`/${product.id}`}>{product.title}</Link>
+              <Link
+                to={`/${product.id}/search?q=${
+                  q ? q : searchTerm ? searchTerm : ""
+                }&limit=${limit ? limit : itemsPerPage}&page=${
+                  currentPage + 1
+                }`}
+              >
+                {product.title}
+              </Link>
             </li>
           ))}
         </ul>
